@@ -4,12 +4,17 @@ param(
 
 $ErrorActionPreference = 'Stop'
 $ListenPort = 3080
+$BackendPort = 3098
 $RuleName = 'DSH Web LAN 3080'
 $InterfaceAlias = 'Wi-Fi'
 $ProfilePatchPath = Join-Path $env:USERPROFILE '.dsh\profiles\web\cordis.patch.yml'
 $BackupPath = Join-Path $env:USERPROFILE '.dsh\profiles\web\cordis.patch.before-dsh-lan.yml'
 $StatusPath = Join-Path (Split-Path -Parent $PSCommandPath) 'dsh-lan-status.json'
 $ManagedMarker = '# Managed by enable-dsh-lan.ps1'
+
+# Windows PowerShell 5 does not load this assembly until a type is first used;
+# elevated non-interactive launches therefore need the dependency explicitly.
+Add-Type -AssemblyName System.Net.Http
 
 function Test-IsAdministrator {
     $identity = [Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()
@@ -34,20 +39,20 @@ function Get-LanAddress {
 }
 
 function Assert-DshLocalReady {
-    $listener = Get-NetTCPConnection -LocalAddress 127.0.0.1 -LocalPort $ListenPort -State Listen -ErrorAction SilentlyContinue |
+    $listener = Get-NetTCPConnection -LocalAddress 127.0.0.1 -LocalPort $BackendPort -State Listen -ErrorAction SilentlyContinue |
         Select-Object -First 1
     if (-not $listener) {
-        throw "DSH is not listening at 127.0.0.1:$ListenPort."
+        throw "DSH is not listening at 127.0.0.1:$BackendPort."
     }
 
     $process = Get-CimInstance Win32_Process -Filter "ProcessId=$($listener.OwningProcess)"
-    if (-not $process -or $process.CommandLine -notmatch 'deepseek-harness.+apps\\cli\\lib\\bin\.js.+\bweb\b') {
-        throw "Port 127.0.0.1:$ListenPort is not owned by the expected DSH Web process."
+    if (-not $process -or $process.CommandLine -notmatch '(?:deepseek-harness.+)?apps[\\/]cli[\\/]lib[\\/]bin\.js.+\bweb\b') {
+        throw "Port 127.0.0.1:$BackendPort is not owned by the expected DSH Web process."
     }
 
-    $response = Invoke-WebRequest -UseBasicParsing -TimeoutSec 5 -Uri "http://127.0.0.1:$ListenPort/"
+    $response = Invoke-WebRequest -UseBasicParsing -TimeoutSec 5 -Uri "http://127.0.0.1:$BackendPort/"
     if ($response.StatusCode -ne 200 -or $response.Content -notmatch '<title>DSH Local Build</title>') {
-        throw "DSH local HTTP verification failed at http://127.0.0.1:$ListenPort/."
+        throw "DSH local HTTP verification failed at http://127.0.0.1:$BackendPort/."
     }
 }
 
@@ -73,12 +78,12 @@ function Test-TrustedApi {
     try {
         $request = [System.Net.Http.HttpRequestMessage]::new(
             [System.Net.Http.HttpMethod]::Get,
-            "http://127.0.0.1:$ListenPort/api/dsh-lan-trust-probe"
+            "http://127.0.0.1:$BackendPort/api/dsh-lan-trust-probe"
         )
         $request.Headers.Host = "$($LanAddress):$ListenPort"
         [void]$request.Headers.TryAddWithoutValidation('Origin', "http://$($LanAddress):$ListenPort")
         [void]$request.Headers.TryAddWithoutValidation('Sec-Fetch-Site', 'same-origin')
-        $response = $client.Send($request)
+        $response = $client.SendAsync($request).GetAwaiter().GetResult()
         return [int]$response.StatusCode
     }
     finally {
@@ -121,7 +126,12 @@ function Set-DshLanProfile {
         '    - id: directory-picker-browse',
         "      name: '@deepseek-ai/dsh-host-directory-picker-browse'",
         '    - id: ui-directory-picker-browse',
-        "      name: '@deepseek-ai/dsh-client-ui-directory-picker-browse'"
+        "      name: '@deepseek-ai/dsh-client-ui-directory-picker-browse'",
+        '',
+        '# User UI overlay: Apple-style design tokens + mobile ergonomics.',
+        '- insert:',
+        '    - id: local-apple-mobile',
+        "      name: '@local/dsh-apple-mobile'"
     )
     Set-Content -LiteralPath $ProfilePatchPath -Value $patchLines -Encoding utf8
 
@@ -146,13 +156,13 @@ function Ensure-PortProxy {
     }
     if ($listeners.Count -eq 1) {
         $entry = $listeners[0]
-        if ($entry.ConnectAddress -ne '127.0.0.1' -or $entry.ConnectPort -ne $ListenPort) {
+        if ($entry.ConnectAddress -ne '127.0.0.1' -or $entry.ConnectPort -ne $BackendPort) {
             throw "A conflicting portproxy already owns 0.0.0.0:$ListenPort."
         }
         return
     }
 
-    netsh interface portproxy add v4tov4 listenport=$ListenPort listenaddress=0.0.0.0 connectport=$ListenPort connectaddress=127.0.0.1 | Out-Null
+    netsh interface portproxy add v4tov4 listenport=$ListenPort listenaddress=0.0.0.0 connectport=$BackendPort connectaddress=127.0.0.1 | Out-Null
     if ($LASTEXITCODE -ne 0) {
         throw "netsh failed to add the DSH portproxy (exit $LASTEXITCODE)."
     }
@@ -210,23 +220,29 @@ function Ensure-FirewallRule {
 
 function Write-Status {
     param([string]$LanAddress, [bool]$Enabled)
-    [ordered]@{
+    $status = [ordered]@{
         enabled = $Enabled
-        localUrl = "http://127.0.0.1:$ListenPort/"
+        localUrl = "http://127.0.0.1:$BackendPort/"
+        backendUrl = "http://127.0.0.1:$BackendPort/"
         lanUrl = "http://$($LanAddress):$ListenPort/"
         interface = $InterfaceAlias
         firewallProfile = 'Private'
         remoteAddress = 'LocalSubnet'
         routerForwarding = $false
         checkedAt = [DateTime]::UtcNow.ToString('o')
-    } | ConvertTo-Json | Set-Content -LiteralPath $StatusPath -Encoding utf8
+    } | ConvertTo-Json
+    [IO.File]::WriteAllText(
+        $StatusPath,
+        $status + [Environment]::NewLine,
+        [Text.UTF8Encoding]::new($false)
+    )
 }
 
 $lanIp = Get-LanAddress
 Assert-DshLocalReady
 
 if ($ValidateOnly) {
-    Write-Host "VALID: DSH is ready at http://127.0.0.1:$ListenPort/; planned mobile URL is http://$($lanIp):$ListenPort/."
+    Write-Host "VALID: DSH is ready at http://127.0.0.1:$BackendPort/; planned mobile URL is http://$($lanIp):$ListenPort/."
     exit 0
 }
 
@@ -242,7 +258,7 @@ $proxy = @(Get-PortProxyEntries | Where-Object {
     $_.ListenAddress -eq '0.0.0.0' -and
     $_.ListenPort -eq $ListenPort -and
     $_.ConnectAddress -eq '127.0.0.1' -and
-    $_.ConnectPort -eq $ListenPort
+    $_.ConnectPort -eq $BackendPort
 })
 if ($proxy.Count -ne 1) {
     throw 'The exact DSH portproxy was not present after setup.'
