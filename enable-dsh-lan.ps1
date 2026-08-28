@@ -22,8 +22,9 @@ function Test-IsAdministrator {
 }
 
 function Get-LanAddress {
+    param([switch]$RequirePrivate = $true)
     $profile = Get-NetConnectionProfile -InterfaceAlias $InterfaceAlias -ErrorAction Stop
-    if ($profile.NetworkCategory -ne 'Private') {
+    if ($RequirePrivate -and $profile.NetworkCategory -ne 'Private') {
         throw "Interface '$InterfaceAlias' must use the Private network profile; current profile is $($profile.NetworkCategory)."
     }
 
@@ -50,9 +51,20 @@ function Assert-DshLocalReady {
         throw "Port 127.0.0.1:$BackendPort is not owned by the expected DSH Web process."
     }
 
-    $response = Invoke-WebRequest -UseBasicParsing -TimeoutSec 5 -Uri "http://127.0.0.1:$BackendPort/"
-    if ($response.StatusCode -ne 200 -or $response.Content -notmatch '<title>DSH Local Build</title>') {
-        throw "DSH local HTTP verification failed at http://127.0.0.1:$BackendPort/."
+    try {
+        $response = Invoke-WebRequest -UseBasicParsing -TimeoutSec 5 -Uri "http://127.0.0.1:$BackendPort/"
+        if ($response.StatusCode -ne 200 -or $response.Content -notmatch '<title>DSH Local Build</title>') {
+            throw "DSH local HTTP verification failed at http://127.0.0.1:$BackendPort/."
+        }
+    }
+    catch {
+        # Windows PowerShell 5.1 raises non-2xx as a terminating error. DSH 0.1.2+
+        # answers loopback without the launch token with 401, which still proves
+        # the expected DSH Web process is alive and serving on the backend port.
+        $status = $_.Exception.Response.StatusCode
+        if (-not $status -or [int]$status -ne 401) {
+            throw
+        }
     }
 }
 
@@ -238,10 +250,14 @@ function Write-Status {
     )
 }
 
-$lanIp = Get-LanAddress
+$lanIp = Get-LanAddress -RequirePrivate:(-not $ValidateOnly)
 Assert-DshLocalReady
 
 if ($ValidateOnly) {
+    $activeProfile = Get-NetConnectionProfile -InterfaceAlias $InterfaceAlias -ErrorAction SilentlyContinue
+    if ($activeProfile -and $activeProfile.NetworkCategory -ne 'Private') {
+        Write-Warning "Interface '$InterfaceAlias' is '$($activeProfile.NetworkCategory)'; an actual enable will fail-closed until it returns to Private. This validates the script only."
+    }
     Write-Host "VALID: DSH is ready at http://127.0.0.1:$BackendPort/; planned mobile URL is http://$($lanIp):$ListenPort/."
     exit 0
 }
