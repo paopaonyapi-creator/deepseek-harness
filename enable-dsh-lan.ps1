@@ -153,7 +153,9 @@ function Set-DshLanProfile {
         $status = Test-TrustedApi -LanAddress $LanAddress
         # The probe path intentionally has no route: 404 proves the request
         # crossed the trust fence, whereas an untrusted LAN authority gets 403.
-        if ($status -eq 404) { return }
+        # DSH 0.1.2+ answers without a launch token with 401, which still proves
+        # the request crossed the fence, so accept it too.
+        if ($status -eq 404 -or $status -eq 401) { return }
     } while ([DateTime]::UtcNow -lt $deadline)
 
     throw "DSH did not accept the trusted LAN authority after its profile hot reload; last API status was $status."
@@ -251,16 +253,23 @@ function Write-Status {
 }
 
 $lanIp = Get-LanAddress -RequirePrivate:(-not $ValidateOnly)
-Assert-DshLocalReady
 
 if ($ValidateOnly) {
     $activeProfile = Get-NetConnectionProfile -InterfaceAlias $InterfaceAlias -ErrorAction SilentlyContinue
     if ($activeProfile -and $activeProfile.NetworkCategory -ne 'Private') {
         Write-Warning "Interface '$InterfaceAlias' is '$($activeProfile.NetworkCategory)'; an actual enable will fail-closed until it returns to Private. This validates the script only."
     }
-    Write-Host "VALID: DSH is ready at http://127.0.0.1:$BackendPort/; planned mobile URL is http://$($lanIp):$ListenPort/."
+    try {
+        Assert-DshLocalReady
+        Write-Host "VALID: DSH is ready at http://127.0.0.1:$BackendPort/; planned mobile URL is http://$($lanIp):$ListenPort/."
+    }
+    catch {
+        Write-Warning "DSH backend is not running at http://127.0.0.1:$BackendPort/ ($($_.Exception.Message)) Start it with 'dsh web --port $BackendPort --no-open' before a real enable; script syntax and config checks passed. Planned mobile URL is http://$($lanIp):$ListenPort/."
+    }
     exit 0
 }
+
+Assert-DshLocalReady
 
 if (-not (Test-IsAdministrator)) {
     throw 'Administrator rights are required. Run this script with Run as administrator.'
@@ -280,11 +289,22 @@ if ($proxy.Count -ne 1) {
     throw 'The exact DSH portproxy was not present after setup.'
 }
 
-$lanResponse = Invoke-WebRequest -UseBasicParsing -TimeoutSec 5 -Uri "http://$($lanIp):$ListenPort/"
-if ($lanResponse.StatusCode -ne 200 -or $lanResponse.Content -notmatch '<title>DSH Local Build</title>') {
-    throw "LAN HTTP verification failed at http://$($lanIp):$ListenPort/."
+try {
+    $lanResponse = Invoke-WebRequest -UseBasicParsing -TimeoutSec 5 -Uri "http://$($lanIp):$ListenPort/"
+    if ($lanResponse.StatusCode -ne 200 -or $lanResponse.Content -notmatch '<title>DSH Local Build</title>') {
+        throw "LAN HTTP verification failed at http://$($lanIp):$ListenPort/."
+    }
 }
-if ((Test-TrustedApi -LanAddress $lanIp) -ne 404) {
+catch {
+    # DSH 0.1.2+ answers without a launch token with 401, which still proves
+    # the LAN proxy reaches the expected backend (see Assert-DshLocalReady).
+    $lanStatus = $_.Exception.Response.StatusCode
+    if (-not $lanStatus -or [int]$lanStatus -ne 401) {
+        throw
+    }
+}
+$trustStatus = Test-TrustedApi -LanAddress $lanIp
+if ($trustStatus -ne 404 -and $trustStatus -ne 401) {
     throw 'DSH LAN API trust verification failed.'
 }
 
