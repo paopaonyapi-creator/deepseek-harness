@@ -2,6 +2,7 @@ param()
 
 $ErrorActionPreference = 'Stop'
 $ListenPort = 3080
+$BackendPort = 3098
 $RuleName = 'DSH Web LAN 3080'
 $ProfilePatchPath = Join-Path $env:USERPROFILE '.dsh\profiles\web\cordis.patch.yml'
 $BackupPath = Join-Path $env:USERPROFILE '.dsh\profiles\web\cordis.patch.before-dsh-lan.yml'
@@ -14,7 +15,7 @@ if (-not $identity.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrat
 }
 
 $entries = netsh interface portproxy show v4tov4
-$present = $entries | Where-Object { $_ -match '^\s*0\.0\.0\.0\s+3080\s+127\.0\.0\.1\s+3080\s*$' }
+$present = $entries | Where-Object { $_ -match "^\s*0\.0\.0\.0\s+$ListenPort\s+127\.0\.0\.1\s+$BackendPort\s*$" }
 if ($present) {
     netsh interface portproxy delete v4tov4 listenport=$ListenPort listenaddress=0.0.0.0 | Out-Null
     if ($LASTEXITCODE -ne 0) {
@@ -40,11 +41,20 @@ elseif ((Test-Path -LiteralPath $ProfilePatchPath) -and
     Set-Content -LiteralPath $ProfilePatchPath -Value '[]' -Encoding utf8
 }
 
-[ordered]@{
+$status = [ordered]@{
     enabled = $false
-    localUrl = "http://127.0.0.1:$ListenPort/"
+    localUrl = "http://127.0.0.1:$BackendPort/"
+    backendUrl = "http://127.0.0.1:$BackendPort/"
+    interface = 'Wi-Fi'
+    firewallProfile = 'Private'
+    remoteAddress = 'LocalSubnet'
     routerForwarding = $false
     checkedAt = [DateTime]::UtcNow.ToString('o')
-} | ConvertTo-Json | Set-Content -LiteralPath $StatusPath -Encoding utf8
+} | ConvertTo-Json
+[IO.File]::WriteAllText(
+    $StatusPath,
+    $status + [Environment]::NewLine,
+    [Text.UTF8Encoding]::new($false)
+)
 
 Write-Host 'SUCCESS: DSH LAN access is disabled; the local DSH server was left running.'
