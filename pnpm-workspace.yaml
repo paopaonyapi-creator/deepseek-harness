@@ -18,6 +18,11 @@ overrides:
   'extract-zip>yauzl': '3.4.0'
   '@deepseek-ai/cosmokit': 'link:vendor/cosmokit'
   '@deepseek-ai/schemastery': 'link:vendor/schemastery'
+  # zod brands its types with version literals, so two resolved copies break
+  # cross-package type identity under exactOptionalPropertyTypes (duplicate
+  # 4.4.3 + 4.6.5 copies failed the stagehand-native build). Pin one copy
+  # until every consumer range resolves to the same minor.
+  'zod': '4.4.3'
 
 peerDependencyRules:
   allowedVersions:
