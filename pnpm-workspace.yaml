@@ -27,6 +27,9 @@ overrides:
 peerDependencyRules:
   allowedVersions:
     typescript: '>=5 <7'
+    # vitepress-plugin-mermaid declares 10 || 11, but its rendering works with
+    # the bumped mermaid 12; the doc-site build and viewer spec verify it.
+    mermaid: '10 || 11 || 12'
 
 # pnpm 10+ blocks any dependency shipping an install/build script until it is
 # explicitly reviewed here (strictDepBuilds defaults to true: an unlisted script
