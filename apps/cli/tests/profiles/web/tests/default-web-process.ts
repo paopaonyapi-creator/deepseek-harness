@@ -10,7 +10,6 @@ import type { IncomingHttpHeaders } from 'node:http'
 import { resolveExampleLaunch } from '@deepseek-ai/dsh-loader-smoke'
 import ts from 'typescript'
 import { expect } from 'vitest'
-import type { TestContext } from 'vitest'
 import { PROCESS_SHUTDOWN_TIMEOUT_MS } from '../../../../src/process-shutdown.ts'
 import type { RuntimeRoster } from './runtime-roster.ts'
 
@@ -24,10 +23,19 @@ interface DefaultWeb {
 
 /**
  * Boot the built Web profile under plain Node and dispose it to quiescence after an assertion callback.
- * @param test - owning Vitest case, including its timeout, cancellation, and cleanup hooks.
+ * @param test - owning Vitest case, including its timeout, cancellation, and cleanup hooks. Declared
+ *   structurally because vitest resolves multiple instance-specific `TestContext` declarations across
+ *   packages, and those interfaces do not unify across the instances.
  * @param inspect - assertions against the running process and its ephemeral loopback URL.
  */
-export async function withDefaultWeb(test: TestContext, inspect: (app: DefaultWeb) => Promise<void>): Promise<void> {
+export async function withDefaultWeb(
+  test: {
+    onTestFinished: (fn: () => void | Promise<void>) => void
+    signal: AbortSignal
+    task: { timeout: number }
+  },
+  inspect: (app: DefaultWeb) => Promise<void>,
+): Promise<void> {
   const root = await mkdtemp(join(tmpdir(), 'dsh-web-default-isolation-'))
   let removal: Promise<void> | undefined
   const removeRoot = (): Promise<void> => removal ??= rm(root, { recursive: true, force: true })

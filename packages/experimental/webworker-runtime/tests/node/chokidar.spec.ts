@@ -23,8 +23,8 @@ interface ChokidarFixture {
 
 const CHOKIDAR_FIXTURES: readonly ChokidarFixture[] = [
   {
-    label: 'Chokidar 4 from credentials',
-    consumerManifest: 'packages/credentials/credentials-local/package.json',
+    label: 'Chokidar 4 from the vendored hmr plugin',
+    consumerManifest: 'vendor/hmr/package.json',
     chokidarFiles: ['package.json', 'esm/package.json', 'esm/index.js', 'esm/handler.js'],
     readdirpFiles: ['package.json', 'esm/package.json', 'esm/index.js'],
   },

@@ -1,16 +1,18 @@
 /** Controlled browser audio devices with real Recording ownership and conversion. */
 import { vi } from 'vitest'
+import type { Mock } from 'vitest'
 import { Recording } from '../src/client/audio.ts'
 
 /**
  * Install per-test audio devices; callers restore globals and release acquired recordings.
  * @param options - device failures or an empty final recording.
- * @returns the recording, device controls, and resource observations.
+ * @returns the recording, device controls, and resource observations. The mocks are annotated
+ *   because vitest 5's inferred `Mock` instances embed a non-portable internal type.
  */
 export function captureFixture(options: { empty?: boolean; recorderError?: boolean; constructError?: boolean } = {}) {
-  const trackStop = vi.fn(), close = vi.fn(async () => {}), disposed = vi.fn()
-  const decoding = vi.fn(async (_data: ArrayBuffer) => ({ duration: 2 }))
-  const rendering = vi.fn(async () => ({ getChannelData: () => new Float32Array([0.5, -0.5]) }))
+  const trackStop: Mock = vi.fn(), close: Mock = vi.fn(async () => {}), disposed: Mock = vi.fn()
+  const decoding: Mock = vi.fn(async (_data: ArrayBuffer) => ({ duration: 2 }))
+  const rendering: Mock = vi.fn(async () => ({ getChannelData: () => new Float32Array([0.5, -0.5]) }))
   let failRecorder: () => void
   class Recorder {
     state = 'inactive'
@@ -33,7 +35,7 @@ export function captureFixture(options: { empty?: boolean; recorderError?: boole
       })
     }
   }
-  const offline = vi.fn(function Offline(_channels: number, _frames: number, _rate: number) {
+  const offline: Mock = vi.fn(function Offline(_channels: number, _frames: number, _rate: number) {
     return { destination: {}, createBufferSource: () => ({ buffer: null, connect() {}, start() {} }), startRendering: rendering }
   })
   vi.stubGlobal('navigator', { mediaDevices: { getUserMedia: async () => ({ getTracks: () => [{ stop: trackStop }] }) } })

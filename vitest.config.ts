@@ -169,6 +169,10 @@ export default defineConfig({
     // Node stability; process-bound suites stay separate for inventory control.
     projects: [
       {
+        // Vitest 5 defaults inline projects to inheriting the root include
+        // arrays, which would run every suite in both projects; keep the
+        // v4 replacement semantics where each project owns its include.
+        extends: false,
         plugins: [pathsPlugin(), standardDecoratorPlugin()],
         test: {
           name: 'thread-safe',
@@ -187,6 +191,7 @@ export default defineConfig({
         },
       },
       {
+        extends: false,
         plugins: [pathsPlugin(), standardDecoratorPlugin()],
         test: {
           name: 'process-bound',
