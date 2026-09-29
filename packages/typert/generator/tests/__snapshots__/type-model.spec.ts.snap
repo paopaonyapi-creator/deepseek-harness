@@ -358,14 +358,6 @@ exports[`WorkspaceAnalyzer > builds independent face models with an explicit cro
     {
       "fromFace": "client",
       "fromPackage": "@fixture/client",
-      "name": "default",
-      "subpath": ".",
-      "toFace": "host",
-      "toPackage": "@fixture/host",
-    },
-    {
-      "fromFace": "client",
-      "fromPackage": "@fixture/client",
       "name": "HostAgent",
       "subpath": ".",
       "toFace": "host",
@@ -375,6 +367,14 @@ exports[`WorkspaceAnalyzer > builds independent face models with an explicit cro
       "fromFace": "client",
       "fromPackage": "@fixture/client",
       "name": "Payload",
+      "subpath": ".",
+      "toFace": "host",
+      "toPackage": "@fixture/host",
+    },
+    {
+      "fromFace": "client",
+      "fromPackage": "@fixture/client",
+      "name": "default",
       "subpath": ".",
       "toFace": "host",
       "toPackage": "@fixture/host",
@@ -2909,51 +2909,6 @@ exports[`WorkspaceAnalyzer > builds independent face models with an explicit cro
             },
           },
           {
-            "id": "type:packages/host/src/index.ts:12:34#1",
-            "kind": "keyword",
-            "name": "object",
-          },
-          {
-            "id": "type:packages/host/src/index.ts:12:43#1",
-            "kind": "object",
-            "members": [
-              {
-                "abstract": false,
-                "async": false,
-                "id": "type:packages/host/src/index.ts:12:43#1#ready@400",
-                "kind": "property",
-                "location": {
-                  "column": 45,
-                  "file": "packages/host/src/index.ts",
-                  "line": 12,
-                },
-                "name": "ready",
-                "optional": false,
-                "readonly": false,
-                "static": false,
-                "tags": [],
-                "text": "ready: boolean",
-                "type": "type:packages/host/src/index.ts:12:52#1",
-                "visibility": "public",
-              },
-            ],
-          },
-          {
-            "id": "type:packages/host/src/index.ts:12:52#1",
-            "kind": "keyword",
-            "name": "boolean",
-          },
-          {
-            "arguments": [],
-            "id": "type:packages/host/src/index.ts:12:74#1",
-            "kind": "reference",
-            "name": "Entity",
-            "target": {
-              "kind": "declaration",
-              "symbol": "@fixture/host:packages/host/src/models.ts#Entity",
-            },
-          },
-          {
             "id": "type:packages/host/src/index.ts:120:22#1",
             "kind": "function",
             "signature": {
@@ -3018,6 +2973,51 @@ exports[`WorkspaceAnalyzer > builds independent face models with an explicit cro
             "id": "type:packages/host/src/index.ts:123:51#1",
             "kind": "keyword",
             "name": "void",
+          },
+          {
+            "id": "type:packages/host/src/index.ts:12:34#1",
+            "kind": "keyword",
+            "name": "object",
+          },
+          {
+            "id": "type:packages/host/src/index.ts:12:43#1",
+            "kind": "object",
+            "members": [
+              {
+                "abstract": false,
+                "async": false,
+                "id": "type:packages/host/src/index.ts:12:43#1#ready@400",
+                "kind": "property",
+                "location": {
+                  "column": 45,
+                  "file": "packages/host/src/index.ts",
+                  "line": 12,
+                },
+                "name": "ready",
+                "optional": false,
+                "readonly": false,
+                "static": false,
+                "tags": [],
+                "text": "ready: boolean",
+                "type": "type:packages/host/src/index.ts:12:52#1",
+                "visibility": "public",
+              },
+            ],
+          },
+          {
+            "id": "type:packages/host/src/index.ts:12:52#1",
+            "kind": "keyword",
+            "name": "boolean",
+          },
+          {
+            "arguments": [],
+            "id": "type:packages/host/src/index.ts:12:74#1",
+            "kind": "reference",
+            "name": "Entity",
+            "target": {
+              "kind": "declaration",
+              "symbol": "@fixture/host:packages/host/src/models.ts#Entity",
+            },
           },
           {
             "arguments": [
@@ -3457,19 +3457,6 @@ exports[`WorkspaceAnalyzer > builds independent face models with an explicit cro
             "name": "string",
           },
           {
-            "id": "type:packages/host/src/models.ts:11:24#1",
-            "kind": "mapped",
-            "optional": "add",
-            "parameter": {
-              "const": false,
-              "constraint": "type:packages/host/src/models.ts:12:18#1",
-              "id": "packages/host/src/models.ts:12:13#K",
-              "name": "K",
-            },
-            "readonly": "add",
-            "value": "type:packages/host/src/models.ts:12:29#1",
-          },
-          {
             "id": "type:packages/host/src/models.ts:113:13#1",
             "kind": "keyword",
             "name": "any",
@@ -3626,25 +3613,17 @@ exports[`WorkspaceAnalyzer > builds independent face models with an explicit cro
             "name": "string",
           },
           {
-            "id": "type:packages/host/src/models.ts:12:18#1",
-            "kind": "operator",
-            "operator": "keyof",
-            "type": "type:packages/host/src/models.ts:12:24#1",
-          },
-          {
-            "arguments": [],
-            "id": "type:packages/host/src/models.ts:12:24#1",
-            "kind": "reference",
-            "name": "T",
-            "target": {
-              "kind": "type-parameter",
-              "parameter": "packages/host/src/models.ts:11:19#T",
+            "id": "type:packages/host/src/models.ts:11:24#1",
+            "kind": "mapped",
+            "optional": "add",
+            "parameter": {
+              "const": false,
+              "constraint": "type:packages/host/src/models.ts:12:18#1",
+              "id": "packages/host/src/models.ts:12:13#K",
+              "name": "K",
             },
-          },
-          {
-            "id": "type:packages/host/src/models.ts:12:29#1",
-            "kind": "keyword",
-            "name": "boolean",
+            "readonly": "add",
+            "value": "type:packages/host/src/models.ts:12:29#1",
           },
           {
             "elements": [
@@ -3897,6 +3876,27 @@ exports[`WorkspaceAnalyzer > builds independent face models with an explicit cro
             "id": "type:packages/host/src/models.ts:128:29#1",
             "kind": "keyword",
             "name": "void",
+          },
+          {
+            "id": "type:packages/host/src/models.ts:12:18#1",
+            "kind": "operator",
+            "operator": "keyof",
+            "type": "type:packages/host/src/models.ts:12:24#1",
+          },
+          {
+            "arguments": [],
+            "id": "type:packages/host/src/models.ts:12:24#1",
+            "kind": "reference",
+            "name": "T",
+            "target": {
+              "kind": "type-parameter",
+              "parameter": "packages/host/src/models.ts:11:19#T",
+            },
+          },
+          {
+            "id": "type:packages/host/src/models.ts:12:29#1",
+            "kind": "keyword",
+            "name": "boolean",
           },
           {
             "id": "type:packages/host/src/models.ts:130:13#1",
@@ -4615,16 +4615,6 @@ exports[`WorkspaceAnalyzer > builds independent face models with an explicit cro
             "name": "unknown",
           },
           {
-            "arguments": [],
-            "id": "type:packages/host/src/models.ts:4:19#1",
-            "kind": "reference",
-            "name": "T",
-            "target": {
-              "kind": "type-parameter",
-              "parameter": "packages/host/src/models.ts:2:22#T",
-            },
-          },
-          {
             "id": "type:packages/host/src/models.ts:42:12#1",
             "kind": "function",
             "signature": {
@@ -4755,6 +4745,16 @@ exports[`WorkspaceAnalyzer > builds independent face models with an explicit cro
             "id": "type:packages/host/src/models.ts:48:95#1",
             "kind": "keyword",
             "name": "never",
+          },
+          {
+            "arguments": [],
+            "id": "type:packages/host/src/models.ts:4:19#1",
+            "kind": "reference",
+            "name": "T",
+            "target": {
+              "kind": "type-parameter",
+              "parameter": "packages/host/src/models.ts:2:22#T",
+            },
           },
           {
             "check": "type:packages/host/src/models.ts:51:35#2",
@@ -5105,58 +5105,6 @@ exports[`WorkspaceAnalyzer > builds independent face models with an explicit cro
             },
           },
           {
-            "check": "type:packages/host/src/models.ts:8:26#2",
-            "extends": "type:packages/host/src/models.ts:8:36#1",
-            "id": "type:packages/host/src/models.ts:8:26#1",
-            "kind": "conditional",
-            "whenFalse": "type:packages/host/src/models.ts:8:63#1",
-            "whenTrue": "type:packages/host/src/models.ts:8:55#1",
-          },
-          {
-            "arguments": [],
-            "id": "type:packages/host/src/models.ts:8:26#2",
-            "kind": "reference",
-            "name": "T",
-            "target": {
-              "kind": "type-parameter",
-              "parameter": "packages/host/src/models.ts:8:21#T",
-            },
-          },
-          {
-            "id": "type:packages/host/src/models.ts:8:36#1",
-            "kind": "union",
-            "types": [
-              "type:packages/host/src/models.ts:8:36#2",
-              "type:packages/host/src/models.ts:8:43#1",
-            ],
-          },
-          {
-            "id": "type:packages/host/src/models.ts:8:36#2",
-            "kind": "literal",
-            "text": "null",
-            "value": null,
-          },
-          {
-            "id": "type:packages/host/src/models.ts:8:43#1",
-            "kind": "keyword",
-            "name": "undefined",
-          },
-          {
-            "id": "type:packages/host/src/models.ts:8:55#1",
-            "kind": "keyword",
-            "name": "never",
-          },
-          {
-            "arguments": [],
-            "id": "type:packages/host/src/models.ts:8:63#1",
-            "kind": "reference",
-            "name": "T",
-            "target": {
-              "kind": "type-parameter",
-              "parameter": "packages/host/src/models.ts:8:21#T",
-            },
-          },
-          {
             "id": "type:packages/host/src/models.ts:82:19#1",
             "kind": "keyword",
             "name": "unknown",
@@ -5231,6 +5179,58 @@ exports[`WorkspaceAnalyzer > builds independent face models with an explicit cro
           {
             "id": "type:packages/host/src/models.ts:86:13#1",
             "kind": "this",
+          },
+          {
+            "check": "type:packages/host/src/models.ts:8:26#2",
+            "extends": "type:packages/host/src/models.ts:8:36#1",
+            "id": "type:packages/host/src/models.ts:8:26#1",
+            "kind": "conditional",
+            "whenFalse": "type:packages/host/src/models.ts:8:63#1",
+            "whenTrue": "type:packages/host/src/models.ts:8:55#1",
+          },
+          {
+            "arguments": [],
+            "id": "type:packages/host/src/models.ts:8:26#2",
+            "kind": "reference",
+            "name": "T",
+            "target": {
+              "kind": "type-parameter",
+              "parameter": "packages/host/src/models.ts:8:21#T",
+            },
+          },
+          {
+            "id": "type:packages/host/src/models.ts:8:36#1",
+            "kind": "union",
+            "types": [
+              "type:packages/host/src/models.ts:8:36#2",
+              "type:packages/host/src/models.ts:8:43#1",
+            ],
+          },
+          {
+            "id": "type:packages/host/src/models.ts:8:36#2",
+            "kind": "literal",
+            "text": "null",
+            "value": null,
+          },
+          {
+            "id": "type:packages/host/src/models.ts:8:43#1",
+            "kind": "keyword",
+            "name": "undefined",
+          },
+          {
+            "id": "type:packages/host/src/models.ts:8:55#1",
+            "kind": "keyword",
+            "name": "never",
+          },
+          {
+            "arguments": [],
+            "id": "type:packages/host/src/models.ts:8:63#1",
+            "kind": "reference",
+            "name": "T",
+            "target": {
+              "kind": "type-parameter",
+              "parameter": "packages/host/src/models.ts:8:21#T",
+            },
           },
           {
             "arguments": [],

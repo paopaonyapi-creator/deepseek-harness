@@ -663,8 +663,8 @@ class FaceAnalyzer {
       face: this.face,
       packages,
       graph: {
-        declarations: [...this.declarations.values()].sort((left, right) => left.id.localeCompare(right.id)),
-        nodes: [...this.nodes.values()].sort((left, right) => left.id.localeCompare(right.id)),
+        declarations: [...this.declarations.values()].sort((left, right) => compareCodePoint(left.id, right.id)),
+        nodes: [...this.nodes.values()].sort((left, right) => compareCodePoint(left.id, right.id)),
       },
     }
   }
@@ -2739,8 +2739,8 @@ function mergeWorkspaceModels(models: readonly WorkspaceModel[]): WorkspaceModel
       face,
       packages: [...model.packages.values()].sort((left, right) => left.name.localeCompare(right.name)),
       graph: {
-        declarations: [...model.declarations.values()].sort((left, right) => left.id.localeCompare(right.id)),
-        nodes: [...model.nodes.values()].sort((left, right) => left.id.localeCompare(right.id)),
+        declarations: [...model.declarations.values()].sort((left, right) => compareCodePoint(left.id, right.id)),
+        nodes: [...model.nodes.values()].sort((left, right) => compareCodePoint(left.id, right.id)),
       },
     })),
     crossFaceLinks: [...links.values()].sort(compareCrossFaceLinks),
@@ -3275,11 +3275,20 @@ function uniqueBy<T>(values: readonly T[], key: (value: T) => string): T[] {
   return [...result.values()]
 }
 
+/**
+ * Code-point string ordering. Generated model output must be byte-identical
+ * on every machine, and `localeCompare` results vary with the host ICU
+ * locale, so generated-artifact ordering never uses it.
+ */
+function compareCodePoint(left: string, right: string): number {
+  return left < right ? -1 : left > right ? 1 : 0
+}
+
 function compareCrossFaceLinks(left: CrossFaceLink, right: CrossFaceLink): number {
-  return left.fromFace.localeCompare(right.fromFace)
-    || left.fromPackage.localeCompare(right.fromPackage)
-    || left.toFace.localeCompare(right.toFace)
-    || left.toPackage.localeCompare(right.toPackage)
-    || left.subpath.localeCompare(right.subpath)
-    || left.name.localeCompare(right.name)
+  return compareCodePoint(left.fromFace, right.fromFace)
+    || compareCodePoint(left.fromPackage, right.fromPackage)
+    || compareCodePoint(left.toFace, right.toFace)
+    || compareCodePoint(left.toPackage, right.toPackage)
+    || compareCodePoint(left.subpath, right.subpath)
+    || compareCodePoint(left.name, right.name)
 }
