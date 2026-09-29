@@ -1,9 +1,10 @@
 /**
  * Local typings for use-sync-external-store 1.7.0: the package ships no types
- * and the DefinitelyTyped package is unavailable offline. Mirrors the shim's
- * with-selector build (the only entry this package consumes).
+ * and the DefinitelyTyped package is unavailable offline. Mirrors the
+ * with-selector build (the only entry this package consumes; the React 18+
+ * non-shim entry, because the client floor is React 19).
  */
-declare module 'use-sync-external-store/shim/with-selector.js' {
+declare module 'use-sync-external-store/with-selector.js' {
   export function useSyncExternalStoreWithSelector<Snapshot, Selection>(
     subscribe: (onStoreChange: () => void) => () => void,
     getSnapshot: () => Snapshot,

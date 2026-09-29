@@ -161,7 +161,10 @@ describe('Sidebar chat components', () => {
     snapshot = { status: 'live', value: { address: ADDRESS, reference }, failure: undefined } as never
     view.rerender(<SidebarChatTab {...props} />)
     expect(view.getByText('child conversation')).toBeTruthy()
-    expect(SessionProvider).toHaveBeenCalledWith(expect.objectContaining({ session: reference }), {})
+    // React 19 no longer passes the empty legacy-context second argument to
+    // function components; assert the props the provider is invoked with.
+    const [providerProps] = SessionProvider.mock.calls.at(-1) ?? []
+    expect(providerProps).toMatchObject({ session: reference })
     expect(renderSlot).toHaveBeenCalledWith('sidebar.chat.conversation', {})
   })
 

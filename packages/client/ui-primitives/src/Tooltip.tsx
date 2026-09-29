@@ -1,7 +1,7 @@
 /** Anchor-preserving tooltips with optional body portals for clipping containers. */
 
 import { cloneElement, createContext, useCallback, useContext, useEffect, useRef, useState } from 'react'
-import type { FocusEventHandler, MouseEventHandler, MutableRefObject, ReactElement, Ref } from 'react'
+import type { FocusEventHandler, MouseEventHandler, ReactElement, Ref, RefObject } from 'react'
 import { createPortal } from 'react-dom'
 import css from './Tooltip.module.css'
 
@@ -66,7 +66,7 @@ export function Tooltip({ label, side = 'right', align = 'center', delayMs = 0, 
   const mergedRef = useCallback((el: HTMLElement | null) => {
     anchor.current = el
     if (typeof childRef === 'function') childRef(el)
-    else if (childRef != null) (childRef as MutableRefObject<HTMLElement | null>).current = el
+    else if (childRef != null) (childRef as RefObject<HTMLElement | null>).current = el
   }, [childRef])
   // The anchor's edges rather than final coordinates: a vertical flip has to
   // re-derive the bubble's own top from the opposite edge.

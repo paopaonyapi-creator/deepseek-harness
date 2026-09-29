@@ -399,9 +399,10 @@ export type PropsRenderSlots<S extends keyof SlotMap & string> = {
 /**
  * Registration-position component shape: the bare call signature, so composed
  * constraints check through clean parameter contravariance (FC statics add
- * covariant noise rejecting legitimate narrowings).
+ * covariant noise rejecting legitimate narrowings). The return admits the
+ * async components React 19 renders.
  */
-export type SlotComponent<P> = (props: P) => ReactNode
+export type SlotComponent<P> = (props: P) => ReactNode | Promise<ReactNode>
 
 type FactoryDefOf<F extends keyof SlotFactoryMap & string> = SlotFactoryMap[F] & SlotFactoryDef
 type FactoryInputPropsOf<F extends keyof SlotFactoryMap & string> =

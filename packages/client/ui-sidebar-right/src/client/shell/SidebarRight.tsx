@@ -286,7 +286,7 @@ function PanelChrome({ sessionId, fullscreen, autoFullscreen, actions, t }: Pick
  * The panel: the docked surface with the two controls in its top-right strip,
  * anchored to the frame's right edge and slid off it while collapsed.
  */
-function SidebarPanel(panel: PanelProps & { width: number; panelRef: RefObject<HTMLDivElement> }): ReactNode {
+function SidebarPanel(panel: PanelProps & { width: number; panelRef: RefObject<HTMLDivElement | null> }): ReactNode {
   const { sessionId, surface, actions, t, renderSlot, openTab, width, reportRoom, fullscreen, autoFullscreen, panelRef } = panel
   const { expanded } = surface.layout
   const types = panel.useTabTypes(value => value)
